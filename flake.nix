@@ -7,7 +7,6 @@
     dream2nix = {
       inputs = {
         flake-compat.follows = "flake-compat";
-        flake-parts.follows = "flake-parts";
         nixpkgs.follows = "nixpkgs";
         pre-commit-hooks.follows = "pre-commit-hooks";
       };
@@ -20,8 +19,6 @@
     };
 
     flake-utils = { url = "github:numtide/flake-utils"; };
-
-    flake-parts.url = "github:hercules-ci/flake-parts";
 
     gitignore = {
       inputs.nixpkgs.follows = "nixpkgs";
@@ -66,14 +63,6 @@
                 entry = "${pkgs.statix}/bin/statix fix";
                 language = "system";
                 pass_filenames = false;
-              };
-
-              stylelint-write = {
-                enable = true;
-                name = "Stylelint Write";
-                entry = "${pkgs.stylelint}/bin/stylelint --fix";
-                language = "system";
-                pass_filenames = true;
               };
             };
 

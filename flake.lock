@@ -20,7 +20,7 @@
       "inputs": {
         "devshell": "devshell",
         "flake-compat": ["flake-compat"],
-        "flake-parts": ["flake-parts"],
+        "flake-parts": "flake-parts",
         "nix-unit": "nix-unit",
         "nixpkgs": ["nixpkgs"],
         "pre-commit-hooks": ["pre-commit-hooks"]
@@ -57,7 +57,7 @@
     },
     "flake-parts": {
       "inputs": {
-        "nixpkgs-lib": "nixpkgs-lib"
+        "nixpkgs-lib": ["dream2nix", "nixpkgs"]
       },
       "locked": {
         "lastModified": 1696343447,
@@ -164,24 +164,6 @@
         "type": "github"
       }
     },
-    "nixpkgs-lib": {
-      "locked": {
-        "dir": "lib",
-        "lastModified": 1696019113,
-        "narHash": "sha256-X3+DKYWJm93DRSdC5M6K5hLqzSya9BjibtBsuARoPco=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "f5892ddac112a1e9b3612c39af1b72987ee5783a",
-        "type": "github"
-      },
-      "original": {
-        "dir": "lib",
-        "owner": "NixOS",
-        "ref": "nixos-unstable",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
     "nixpkgs-stable": {
       "locked": {
         "lastModified": 1685801374,
@@ -224,7 +206,6 @@
       "inputs": {
         "dream2nix": "dream2nix",
         "flake-compat": "flake-compat",
-        "flake-parts": "flake-parts",
         "flake-utils": "flake-utils",
         "gitignore": "gitignore",
         "nixpkgs": "nixpkgs",

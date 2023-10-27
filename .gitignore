@@ -132,3 +132,4 @@ dist
 # Nix
 result
 .pre-commit-config.yaml
+.direnv
