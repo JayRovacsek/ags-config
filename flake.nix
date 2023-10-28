@@ -104,6 +104,7 @@
           projectRootFile = "flake.nix";
           packagesDir = ./src;
           packageSets.nixpkgs = pkgs;
+          specialArgs = { inherit self; };
         };
       });
 }

@@ -1,0 +1,1072 @@
+From ff288dc232b7f29dc1432ec274d9920cde6a1529 Mon Sep 17 00:00:00 2001
+From: Jay Rovacsek <jay@rovacsek.com>
+Date: Sun, 29 Oct 2023 01:02:31 +1100
+Subject: [PATCH] Basic tsc compile fixes
+
+---
+ package.json                    |  4 ++--
+ src/app.ts                      |  8 ++++----
+ src/client.ts                   |  9 +++++----
+ src/main.ts                     |  4 ++--
+ src/service.ts                  | 11 ++++++-----
+ src/service/audio.ts            |  1 +
+ src/service/battery.ts          |  3 ++-
+ src/service/bluetooth.ts        | 14 ++++++++------
+ src/service/hyprland.ts         |  2 +-
+ src/service/mpris.ts            |  8 ++++++--
+ src/service/network.ts          |  2 +-
+ src/service/notifications.ts    |  7 +++++++
+ src/service/systemtray.ts       | 14 ++++++++++----
+ src/utils.ts                    |  7 +++++--
+ src/variable.ts                 |  4 ++--
+ src/widget.ts                   |  9 +++++++--
+ src/widgets/centerbox.ts        |  8 ++++----
+ src/widgets/circularprogress.ts | 16 ++++++++--------
+ src/widgets/constructor.ts      | 14 +++++++-------
+ src/widgets/entry.ts            |  4 ++--
+ src/widgets/icon.ts             | 12 ++++++------
+ src/widgets/label.ts            | 11 ++++++-----
+ src/widgets/overrides.ts        |  8 ++++----
+ src/widgets/revealer.ts         |  2 +-
+ src/widgets/scrollable.ts       | 12 ++++++------
+ src/widgets/slider.ts           |  4 ++--
+ src/widgets/stack.ts            |  8 ++++----
+ src/widgets/window.ts           | 18 +++++++++---------
+ tsconfig.json                   |  7 ++++---
+ 29 files changed, 132 insertions(+), 99 deletions(-)
+
+diff --git a/package.json b/package.json
+index e168409..7feea72 100644
+--- a/package.json
++++ b/package.json
+@@ -2,7 +2,7 @@
+     "name": "ags",
+     "version": "1.4.0",
+     "description": "description",
+-    "main": "src/main.ts",
++    "main": "main.js",
+     "repository": "",
+     "author": "Aylur",
+     "license": "GPL",
+@@ -20,4 +20,4 @@
+     "scripts": {
+         "test": "eslint ."
+     }
+-}
++}
+\ No newline at end of file
+diff --git a/src/app.ts b/src/app.ts
+index 4fb1bec..a438793 100644
+--- a/src/app.ts
++++ b/src/app.ts
+@@ -137,7 +137,7 @@ class App extends Gtk.Application {
+     }
+ 
+     removeWindow(w: Gtk.Window | string) {
+-        const name = typeof w === 'string' ? w : w.name;
++        const name = typeof w === 'string' ? w : (w.name ?? '');
+ 
+         const win = this._windows.get(name);
+         if (!win) {
+@@ -159,13 +159,13 @@ class App extends Gtk.Application {
+         w.connect('notify::visible',
+             () => this.emit('window-toggled', w.name, w.visible));
+ 
+-        if (this._windows.has(w.name)) {
++        if (this._windows.has(w.name ?? '')) {
+             console.error(Error('There is already a window named' + w.name));
+             this.quit();
+             return;
+         }
+ 
+-        this._windows.set(w.name, w);
++        this._windows.set(w.name ?? '', w);
+     }
+ 
+     private async _load() {
+@@ -211,7 +211,7 @@ class App extends Gtk.Application {
+             Gio.BusNameOwnerFlags.NONE,
+             (connection: Gio.DBusConnection) => {
+                 this._dbus = Gio.DBusExportedObject
+-                    .wrapJSObject(AgsIFace(this.application_id) as string, this);
++                    .wrapJSObject(AgsIFace(this.application_id ?? '') as string, this);
+ 
+                 this._dbus.export(connection, this._objectPath);
+             },
+diff --git a/src/client.ts b/src/client.ts
+index f655863..afbf487 100644
+--- a/src/client.ts
++++ b/src/client.ts
+@@ -44,11 +44,11 @@ class Client extends Gtk.Application {
+     private _register() {
+         Gio.bus_own_name(
+             Gio.BusType.SESSION,
+-            this.applicationId,
++            this.application_id,
+             Gio.BusNameOwnerFlags.NONE,
+             (connection: Gio.DBusConnection) => {
+                 this._dbus = Gio.DBusExportedObject
+-                    .wrapJSObject(ClientIFace(this.applicationId) as string, this);
++                    .wrapJSObject(ClientIFace(this.application_id ?? '') as string, this);
+ 
+                 this._dbus.export(connection, this._objectPath);
+             },
+@@ -68,14 +68,15 @@ class Client extends Gtk.Application {
+         this._register();
+         this._proxy.RunPromiseRemote(
+             this._promiseJs,
+-            this.applicationId,
++            this.application_id ?? '',
+             this._objectPath,
+         );
+     }
+ }
+ 
+ export default function(bus: string, path: string, flags: Flags) {
+-    const AgsProxy = Gio.DBusProxy.makeProxyWrapper(AgsIFace(bus));
++    const AgsProxy = Gio.DBusProxy.makeProxyWrapper(AgsIFace(bus) ?? '');
++    // @ts-ignore
+     const proxy = new AgsProxy(Gio.DBus.session, bus, path) as AgsProxy;
+ 
+     if (flags.toggleWindow)
+diff --git a/src/main.ts b/src/main.ts
+index d5e791b..46c8683 100644
+--- a/src/main.ts
++++ b/src/main.ts
+@@ -30,7 +30,7 @@ function isRunning(dbusName: string) {
+         '/org/freedesktop/DBus',
+         'org.freedesktop.DBus',
+         'NameHasOwner',
+-        // @ts-expect-error
++        // @ts-ignore
+         GLib.Variant.new_tuple([new GLib.Variant('s', dbusName)]),
+         new GLib.VariantType('(b)'),
+         Gio.DBusCallFlags.NONE,
+@@ -137,7 +137,7 @@ export function main(args: string[]) {
+                 app.Inspector();
+         });
+ 
+-        // @ts-expect-error
++        // @ts-ignore
+         return app.runAsync(null);
+     }
+     else {
+diff --git a/src/service.ts b/src/service.ts
+index f9bf04f..de7ba29 100644
+--- a/src/service.ts
++++ b/src/service.ts
+@@ -44,11 +44,12 @@ export default class Service extends GObject.Object {
+                 name, name, name, flags, false);
+ 
+             case 'gobject': return GObject.ParamSpec.object(
++                // @ts-ignore
+                 name, name, name, flags, GObject.Object);
+ 
+-            // @ts-expect-error
++            // @ts-ignore
+             default: return GObject.ParamSpec.jsobject(
+-                name, name, name, flags, null);
++                name, name, name, flags);
+         }
+     }
+ 
+@@ -68,7 +69,7 @@ export default class Service extends GObject.Object {
+         if (signals) {
+             Object.keys(signals).forEach(signal => Signals[signal] = {
+                 param_types: signals[signal].map(t =>
+-                    // @ts-expect-error
++                    // @ts-ignore
+                     GObject[`TYPE_${t.toUpperCase()}`]),
+             });
+         }
+@@ -91,7 +92,7 @@ export default class Service extends GObject.Object {
+     }
+ 
+     updateProperty(prop: string, value: unknown) {
+-        // @ts-expect-error
++        // @ts-ignore
+         if (this[`_${prop}`] === value)
+             return;
+ 
+@@ -100,7 +101,7 @@ export default class Service extends GObject.Object {
+             .map((w, i) => i > 0 ? w.charAt(0).toUpperCase() + w.slice(1) : w)
+             .join('');
+ 
+-        // @ts-expect-error
++        // @ts-ignore
+         this[`_${privateProp}`] = value;
+         this.notify(prop);
+     }
+diff --git a/src/service/audio.ts b/src/service/audio.ts
+index a32715b..f7bce58 100644
+--- a/src/service/audio.ts
++++ b/src/service/audio.ts
+@@ -216,6 +216,7 @@ class Audio extends Service {
+         const list = [];
+         for (const [, stream] of this._streams) {
+             if (stream.stream instanceof filter)
++                // @ts-ignore
+                 list.push(stream);
+         }
+         return list;
+diff --git a/src/service/battery.ts b/src/service/battery.ts
+index c23be6c..fddd02f 100644
+--- a/src/service/battery.ts
++++ b/src/service/battery.ts
+@@ -6,7 +6,8 @@ import { type BatteryProxy } from '../dbus/types.js';
+ 
+ const BatteryIFace = loadInterfaceXML('org.freedesktop.UPower.Device');
+ const PowerManagerProxy =
+-    Gio.DBusProxy.makeProxyWrapper(BatteryIFace) as BatteryProxy;
++    // @ts-ignore
++    Gio.DBusProxy.makeProxyWrapper(BatteryIFace ?? '') as BatteryProxy;
+ 
+ const DeviceState = {
+     CHARGING: 1,
+diff --git a/src/service/bluetooth.ts b/src/service/bluetooth.ts
+index fff1d86..e429e9f 100644
+--- a/src/service/bluetooth.ts
++++ b/src/service/bluetooth.ts
+@@ -30,14 +30,14 @@ class BluetoothDevice extends Service {
+         });
+     }
+ 
+-    // @ts-expect-error
++    // @ts-ignore
+     private _device: GnomeBluetooth.Device;
+     private _ids: number[];
+     private _connecting = false;
+ 
+     get device() { return this._device; }
+ 
+-    // @ts-expect-error
++    // @ts-ignore
+     constructor(device: GnomeBluetooth.Device) {
+         super();
+ 
+@@ -96,7 +96,7 @@ class Bluetooth extends Service {
+         });
+     }
+ 
+-    // @ts-expect-error
++    // @ts-ignore
+     private _client: GnomeBluetooth.Client;
+     private _devices: Map<string, BluetoothDevice>;
+ 
+@@ -127,13 +127,14 @@ class Bluetooth extends Service {
+             const device = deviceStore.get_item(i);
+ 
+             if (device.paired || device.trusted)
++                // @ts-ignore
+                 devices.push(device);
+         }
+ 
+         return devices;
+     }
+ 
+-    // @ts-expect-error
++    // @ts-ignore
+     private _deviceAdded(_c: unknown, device: GnomeBluetooth.Device) {
+         if (this._devices.has(device.address))
+             return;
+@@ -144,7 +145,7 @@ class Bluetooth extends Service {
+         this.changed('devices');
+     }
+ 
+-    // @ts-expect-error
++    // @ts-ignore
+     private _deviceRemoved(_c: unknown, device: GnomeBluetooth.Device) {
+         if (!this._devices.has(device.address))
+             return;
+@@ -165,7 +166,7 @@ class Bluetooth extends Service {
+             device.device.get_object_path(),
+             connect,
+             null,
+-            // @ts-expect-error
++            // @ts-ignore
+             (client: GnomeBluetooth.Client, res: Gio.AsyncResult) => {
+                 try {
+                     const s = client.connect_service_finish(res);
+@@ -191,6 +192,7 @@ class Bluetooth extends Service {
+         const list = [];
+         for (const [, device] of this._devices) {
+             if (device.connected)
++                // @ts-ignore
+                 list.push(device);
+         }
+         return list;
+diff --git a/src/service/hyprland.ts b/src/service/hyprland.ts
+index d4bd96f..6d97fa3 100644
+--- a/src/service/hyprland.ts
++++ b/src/service/hyprland.ts
+@@ -286,7 +286,7 @@ class Hyprland extends Service {
+                 case 'changefloating': {
+                     const client = this._clients.get('0x' + argv[0]);
+                     if (client)
+-                        // @ts-expect-error
++                        // @ts-ignore
+                         client.floating = argv[1] === '1';
+                     break;
+                 }
+diff --git a/src/service/mpris.ts b/src/service/mpris.ts
+index 0bb57cf..80aaa44 100644
+--- a/src/service/mpris.ts
++++ b/src/service/mpris.ts
+@@ -9,8 +9,11 @@ import { DBusProxy, PlayerProxy, MprisProxy } from '../dbus/types.js';
+ const DBusIFace = loadInterfaceXML('org.freedesktop.DBus');
+ const PlayerIFace = loadInterfaceXML('org.mpris.MediaPlayer2.Player');
+ const MprisIFace = loadInterfaceXML('org.mpris.MediaPlayer2');
++// @ts-ignore
+ const DBusProxy = Gio.DBusProxy.makeProxyWrapper(DBusIFace) as DBusProxy;
++// @ts-ignore
+ const PlayerProxy = Gio.DBusProxy.makeProxyWrapper(PlayerIFace) as PlayerProxy;
++// @ts-ignore
+ const MprisProxy = Gio.DBusProxy.makeProxyWrapper(MprisIFace) as MprisProxy;
+ 
+ const MEDIA_CACHE_PATH = `${CACHE_DIR}/media`;
+@@ -144,7 +147,7 @@ class MprisPlayer extends Service {
+     private _updateState() {
+         const metadata = {} as MprisMetadata;
+         for (const prop in this._playerProxy.Metadata)
+-            metadata[prop] = this._playerProxy.Metadata[prop].deep_unpack();
++            metadata[prop] = this._playerProxy.Metadata[prop].deepUnpack();
+ 
+         let trackArtists = metadata['xesam:artist'];
+         if (!Array.isArray(trackArtists) ||
+@@ -198,7 +201,7 @@ class MprisPlayer extends Service {
+             Gio.File.new_for_path(this._coverPath),
+             Gio.FileCopyFlags.OVERWRITE,
+             GLib.PRIORITY_DEFAULT,
+-            // @ts-expect-error
++            // @ts-ignore
+             null, null, (source, result) => {
+                 try {
+                     source.copy_finish(result);
+@@ -331,6 +334,7 @@ class Mpris extends Service {
+             });
+         });
+         this._proxy.connectSignal('NameOwnerChanged',
++            // @ts-ignore
+             this._onNameOwnerChanged.bind(this));
+     }
+ 
+diff --git a/src/service/network.ts b/src/service/network.ts
+index f6ffd17..a344fae 100644
+--- a/src/service/network.ts
++++ b/src/service/network.ts
+@@ -91,7 +91,7 @@ class Wifi extends Service {
+     }
+ 
+     scan() {
+-        this._device.request_scan_async(null, (device, res) => {
++        this._device.request_scan_async(null, (device: NM.DeviceWifi, res) => {
+             device.request_scan_finish(res);
+             this.emit('changed');
+         });
+diff --git a/src/service/notifications.ts b/src/service/notifications.ts
+index 37529fe..f42d611 100644
+--- a/src/service/notifications.ts
++++ b/src/service/notifications.ts
+@@ -19,8 +19,11 @@ interface Action {
+ }
+ 
+ interface Hints {
++    // @ts-ignore
+     'image-data'?: GLib.Variant<'(iiibiiay)'>
++    // @ts-ignore
+     'desktop-entry'?: GLib.Variant<'s'>
++    // @ts-ignore
+     'urgency'?: GLib.Variant<'y'>
+ }
+ 
+@@ -162,6 +165,7 @@ class Notification extends Service {
+         return GLib.file_test(this._appIcon, GLib.FileTest.EXISTS) ? this._appIcon : null;
+     }
+ 
++    // @ts-ignore
+     private _parseImageData(imageData?: GLib.Variant<'(iiibiiay)'>) {
+         if (!imageData)
+             return null;
+@@ -222,6 +226,7 @@ class Notifications extends Service {
+         const list = [];
+         for (const [, notification] of this._notifications) {
+             if (notification.popup)
++                // @ts-ignore
+                 list.push(notification);
+         }
+         return list;
+@@ -298,6 +303,7 @@ class Notifications extends Service {
+ 
+     private _onClosed(n: Notification) {
+         this._dbus.emit_signal('NotificationClosed',
++            // @ts-ignore
+             GLib.Variant.new('(uu)', [n.id, 3]));
+ 
+         this._notifications.delete(n.id);
+@@ -310,6 +316,7 @@ class Notifications extends Service {
+ 
+     private _onInvoked(n: Notification, id: string) {
+         this._dbus.emit_signal('ActionInvoked',
++            // @ts-ignore
+             GLib.Variant.new('(us)', [n.id, id]));
+     }
+ 
+diff --git a/src/service/systemtray.ts b/src/service/systemtray.ts
+index 01394f1..67bba8b 100644
+--- a/src/service/systemtray.ts
++++ b/src/service/systemtray.ts
+@@ -12,7 +12,8 @@ import Widget from '../widget.js';
+ const StatusNotifierWatcherIFace = loadInterfaceXML('org.kde.StatusNotifierWatcher');
+ const StatusNotifierItemIFace = loadInterfaceXML('org.kde.StatusNotifierItem');
+ const StatusNotifierItemProxy =
+-    Gio.DBusProxy.makeProxyWrapper(StatusNotifierItemIFace) as StatusNotifierItemProxy;
++    // @ts-ignore
++    Gio.DBusProxy.makeProxyWrapper(StatusNotifierItemIFace ?? '') as StatusNotifierItemProxy;
+ 
+ export class TrayItem extends Service {
+     static {
+@@ -116,9 +117,11 @@ export class TrayItem extends Service {
+ 
+     private _itemProxyAcquired(proxy: StatusNotifierItemProxy) {
+         if (proxy.Menu) {
++            // @ts-ignore
+             const menu = Widget({
+-                // @ts-expect-error
++                // @ts-ignore
+                 type: DbusmenuGtk3.Menu,
++                // @ts-ignore
+                 dbus_name: proxy.g_name_owner,
+                 dbus_object: proxy.Menu,
+             });
+@@ -161,16 +164,19 @@ export class TrayItem extends Service {
+             this._proxy.g_object_path,
+             'org.freedesktop.DBus.Properties',
+             'GetAll',
++            // @ts-ignore
+             GLib.Variant.new('(s)', [this._proxy.g_interface_name]),
+             GLib.VariantType.new('(a{sv})'),
+             Gio.DBusCallFlags.NONE, -1,
+             null,
+             (proxy, result) => {
++                // @ts-ignore
+                 const variant = proxy?.call_finish(result) as GLib.Variant<'(a{sv})'>;
+                 if (!variant)
+                     return;
+                 const [properties] = variant.deep_unpack();
+                 Object.entries(properties).map(([propertyName, value]) => {
++                    // @ts-ignore
+                     this._proxy.set_cached_property(propertyName, value);
+                 });
+                 this._notify();
+@@ -195,7 +201,7 @@ export class TrayItem extends Service {
+             array[i + 3] = alpha;
+         }
+         return GdkPixbuf.Pixbuf.new_from_bytes(
+-            array,
++            array as unknown as GLib.Bytes,
+             GdkPixbuf.Colorspace.RGB,
+             true,
+             8,
+@@ -255,7 +261,7 @@ class SystemTray extends Service {
+         const [service] = serviceName;
+         if (service.startsWith('/')) {
+             objectPath = service;
+-            busName = invocation.get_sender();
++            busName = invocation.get_sender() ?? '';
+         } else {
+             busName = service;
+             objectPath = '/StatusNotifierItem';
+diff --git a/src/utils.ts b/src/utils.ts
+index fb2c0c4..8a851ee 100644
+--- a/src/utils.ts
++++ b/src/utils.ts
+@@ -78,6 +78,7 @@ export function bulkConnect(
+ ) {
+     const ids = [];
+     for (const [event, callback] of list)
++        // @ts-ignore
+         ids.push(service.connect(event, callback));
+ 
+     return ids;
+@@ -98,12 +99,12 @@ export function connect(
+         event, (_s, ...args: unknown[]) => callback(widget, ...args));
+ 
+     widget.connect('destroy', () => {
+-        // @ts-expect-error
++        // @ts-ignore
+         widget._destroyed = true;
+         service.disconnect(bind);
+     });
+     GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+-        // @ts-expect-error
++        // @ts-ignore
+         if (!widget._destroyed)
+             callback(widget);
+ 
+@@ -188,7 +189,9 @@ export function execAsync(cmd: string | string[]): Promise<string> {
+ 
+                 const [, stdout, stderr] = proc.communicate_utf8_finish(res);
+                 proc.get_successful()
++                    // @ts-ignore
+                     ? resolve(stdout.trim())
++                    // @ts-ignore
+                     : reject(stderr.trim());
+             } catch (e) {
+                 reject(e);
+diff --git a/src/variable.ts b/src/variable.ts
+index eb5977e..d5dd9ad 100644
+--- a/src/variable.ts
++++ b/src/variable.ts
+@@ -18,10 +18,10 @@ class AgsVariable extends GObject.Object {
+             GTypeName: 'AgsVariable',
+             Signals: { 'changed': {} },
+             Properties: {
+-                // @ts-expect-error
++                // @ts-ignore
+                 'value': GObject.ParamSpec.jsobject(
+                     'value', 'value', 'value',
+-                    GObject.ParamFlags.READWRITE, null,
++                    GObject.ParamFlags.READWRITE,
+                 ),
+             },
+         }, this);
+diff --git a/src/widget.ts b/src/widget.ts
+index 361563d..80b8bfd 100644
+--- a/src/widget.ts
++++ b/src/widget.ts
+@@ -18,11 +18,15 @@ import AgsCircularProgress from './widgets/circularprogress.js';
+ import { constructor, type ctor } from './widgets/constructor.js';
+ 
+ export default Widget;
+-export function Widget({ type, ...params }: { type: ctor }) {
++// @ts-ignore
++export function Widget({ type, ...params }: {
++    // @ts-ignore
++    type: ctor
++}) {
+     return constructor(type, params);
+ }
+ 
+-// @ts-expect-error
++// @ts-ignore
+ export const Window = (args: object) => constructor(AgsWindow, args);
+ export const Box = (args: object) => constructor(AgsBox, args);
+ export const Button = (args: object) => constructor(AgsButton, args);
+@@ -31,6 +35,7 @@ export const CircularProgress = (args: object) => constructor(AgsCircularProgres
+ export const Entry = (args: object) => constructor(AgsEntry, args);
+ export const EventBox = (args: object) => constructor(AgsEventBox, args);
+ export const Icon = (args: object) => constructor(AgsIcon, args);
++// @ts-ignore
+ export const Label = (args: object) => constructor(AgsLabel, args);
+ export const Menu = (args: object) => constructor(AgsMenu, args);
+ export const MenuItem = (args: object) => constructor(AgsMenuItem, args);
+diff --git a/src/widgets/centerbox.ts b/src/widgets/centerbox.ts
+index af1bed8..769090f 100644
+--- a/src/widgets/centerbox.ts
++++ b/src/widgets/centerbox.ts
+@@ -42,13 +42,13 @@ export default class AgsCenterBox extends AgsBox {
+             this.end_widget = children[2];
+     }
+ 
+-    // @ts-expect-error
++    // @ts-ignore
+     get start_widget() { return this._startWidget || null; }
+     set start_widget(child: Gtk.Widget | null) {
+         if (this.start_widget)
+             this.start_widget.destroy();
+ 
+-        // @ts-expect-error
++        // @ts-ignore
+         this._startWidget = child;
+ 
+         if (!child)
+@@ -59,13 +59,13 @@ export default class AgsCenterBox extends AgsBox {
+         this.show_all();
+     }
+ 
+-    // @ts-expect-error
++    // @ts-ignore
+     get end_widget() { return this._endWidget || null; }
+     set end_widget(child: Gtk.Widget | null) {
+         if (this.end_widget)
+             this.end_widget.destroy();
+ 
+-        // @ts-expect-error
++        // @ts-ignore
+         this._endWidget = child;
+ 
+         if (!child)
+diff --git a/src/widgets/circularprogress.ts b/src/widgets/circularprogress.ts
+index 1ac0c2b..9fe0842 100644
+--- a/src/widgets/circularprogress.ts
++++ b/src/widgets/circularprogress.ts
+@@ -26,31 +26,31 @@ export default class AgsCircularProgress extends Gtk.Bin {
+         }, this);
+     }
+ 
+-    // @ts-expect-error
++    // @ts-ignore
+     get rounded() { return this._rounded; }
+     set rounded(r: boolean) {
+         if (this.rounded === r)
+             return;
+ 
+-        // @ts-expect-error
++        // @ts-ignore
+         this._rounded = r;
+         this.notify('rounded');
+         this.queue_draw();
+     }
+ 
+-    // @ts-expect-error
++    // @ts-ignore
+     get inverted() { return this._inverted; }
+     set inverted(inverted: boolean) {
+         if (this.inverted === inverted)
+             return;
+ 
+-        // @ts-expect-error
++        // @ts-ignore
+         this._inverted = inverted;
+         this.notify('inverted');
+         this.queue_draw();
+     }
+ 
+-    // @ts-expect-error
++    // @ts-ignore
+     get start_at() { return this._startAt; }
+     set start_at(value: number) {
+         if (this.start_at === value)
+@@ -62,13 +62,13 @@ export default class AgsCircularProgress extends Gtk.Bin {
+         if (value < 0)
+             value = 0;
+ 
+-        // @ts-expect-error
++        // @ts-ignore
+         this._startAt = value;
+         this.notify('start-at');
+         this.queue_draw();
+     }
+ 
+-    // @ts-expect-error
++    // @ts-ignore
+     get value() { return this._value; }
+     set value(value: number) {
+         if (this.value === value)
+@@ -81,7 +81,7 @@ export default class AgsCircularProgress extends Gtk.Bin {
+             value = 0;
+ 
+ 
+-        // @ts-expect-error
++        // @ts-ignore
+         this._value = value;
+         this.notify('value');
+         this.queue_draw();
+diff --git a/src/widgets/constructor.ts b/src/widgets/constructor.ts
+index ecdc243..ba12aa1 100644
+--- a/src/widgets/constructor.ts
++++ b/src/widgets/constructor.ts
+@@ -51,20 +51,20 @@ function parseCommon(widget: Gtk.Widget, {
+     connections = [], properties, binds, setup,
+ }: CommonParams) {
+     if (className !== undefined)
+-        // @ts-expect-error
++        // @ts-ignore
+         widget.className = className;
+ 
+     if (style !== undefined)
+-        // @ts-expect-error
++        // @ts-ignore
+         widget.style = style;
+ 
+     if (css !== undefined)
+-        // @ts-expect-error
++        // @ts-ignore
+         widget.css = css;
+ 
+ 
+     if (typeof halign === 'string') {
+-        // @ts-expect-error
++        // @ts-ignore
+         const align = Gtk.Align[halign.toUpperCase()];
+         if (typeof align !== 'number')
+             console.error('wrong halign value');
+@@ -76,7 +76,7 @@ function parseCommon(widget: Gtk.Widget, {
+         widget.halign = halign;
+ 
+     if (typeof valign === 'string') {
+-        // @ts-expect-error
++        // @ts-ignore
+         const align = Gtk.Align[valign.toUpperCase()];
+         if (typeof align !== 'number')
+             console.error('wrong valign value');
+@@ -89,7 +89,7 @@ function parseCommon(widget: Gtk.Widget, {
+ 
+     if (properties) {
+         properties.forEach(([key, value]) => {
+-            // @ts-expect-error
++            // @ts-ignore
+             widget[`_${key}`] = value;
+         });
+     }
+@@ -101,7 +101,7 @@ function parseCommon(widget: Gtk.Widget, {
+                 return;
+             }
+ 
+-            // @ts-expect-error
++            // @ts-ignore
+             const callback = () => widget[prop] = transform(obj[objProp]);
+             connections.push([obj, callback, `notify::${objProp}`]);
+         });
+diff --git a/src/widgets/entry.ts b/src/widgets/entry.ts
+index 59752eb..d12ef1f 100644
+--- a/src/widgets/entry.ts
++++ b/src/widgets/entry.ts
+@@ -24,13 +24,13 @@ export default class AgsEntry extends Gtk.Entry {
+         this.connect('activate', () => {
+             typeof this.onAccept === 'function'
+                 ? this.onAccept(this)
+-                : runCmd(this.onAccept.replace(/\{\}/g, this.text));
++                : runCmd(this.onAccept.replace(/\{\}/g, this.text ?? ''));
+         });
+ 
+         this.connect('notify::text', ({ text }, event) => {
+             typeof this.onChange === 'function'
+                 ? this.onChange(this, event)
+-                : runCmd(this.onChange.replace(/\{\}/g, text));
++                : runCmd(this.onChange.replace(/\{\}/g, text ?? ''));
+         });
+     }
+ }
+diff --git a/src/widgets/icon.ts b/src/widgets/icon.ts
+index df5447b..bf1de1d 100644
+--- a/src/widgets/icon.ts
++++ b/src/widgets/icon.ts
+@@ -39,18 +39,18 @@ export default class AgsIcon extends Gtk.Image {
+         this.queue_draw();
+     }
+ 
+-    // @ts-expect-error
++    // @ts-ignore
+     get icon() { return this._icon; }
+     set icon(icon: string | GdkPixbuf.Pixbuf) {
+         if (!icon || this.icon === icon)
+             return;
+ 
+-        // @ts-expect-error
++        // @ts-ignore
+         this._icon = icon;
+         this.notify('icon');
+         if (typeof icon === 'string') {
+             if (GLib.file_test(icon, GLib.FileTest.EXISTS)) {
+-                // @ts-expect-error
++                // @ts-ignore
+                 this._type = 'file';
+                 const pb =
+                     GdkPixbuf.Pixbuf.new_from_file_at_size(
+@@ -60,14 +60,14 @@ export default class AgsIcon extends Gtk.Image {
+                 const cs = Gdk.cairo_surface_create_from_pixbuf(pb, 0, this.get_window());
+                 this.set_from_surface(cs);
+             } else {
+-                // @ts-expect-error
++                // @ts-ignore
+                 this._type = 'named';
+                 this.icon_name = icon;
+                 this.pixel_size = this.size;
+             }
+         }
+         else if (icon instanceof GdkPixbuf.Pixbuf) {
+-            // @ts-expect-error
++            // @ts-ignore
+             this._type = 'pixbuf';
+             const pb_scaled =
+                 icon.scale_simple(
+@@ -97,7 +97,7 @@ export default class AgsIcon extends Gtk.Image {
+ 
+         this._previousSize = size;
+ 
+-        // @ts-expect-error
++        // @ts-ignore
+         switch (this._type) {
+             case 'file': {
+                 const pb = GdkPixbuf.Pixbuf.new_from_file_at_size(
+diff --git a/src/widgets/label.ts b/src/widgets/label.ts
+index fe3f173..554eb2f 100644
+--- a/src/widgets/label.ts
++++ b/src/widgets/label.ts
+@@ -1,5 +1,5 @@
+ import GObject from 'gi://GObject';
+-import Gtk from 'gi://Gtk?version=3.0';
++import Gtk from '@girs/gtk-3.0';
+ import GLib from 'gi://GLib';
+ import Pango from 'gi://Pango';
+ import Service from '../service.js';
+@@ -22,15 +22,16 @@ export default class AgsLabel extends Gtk.Label {
+         super(typeof params === 'string' ? { label: params } : params);
+     }
+ 
+-    get label() { return super.label; }
++    get label() { return super.label ?? ''; }
+     set label(label: string) {
+-        if (this.useMarkup) {
++        if (this.use_markup) {
+             try {
+-                // @ts-expect-error
++                // @ts-ignore
+                 Pango.parse_markup(label, label.length, '0');
+             } catch (e) {
++                // @ts-ignore
+                 if (e instanceof GLib.MarkupError)
+-                    label = GLib.markup_escape_text(label, -1);
++                    label = GLib.markup_escape_text(label, -1) ?? '';
+                 else
+                     console.error(e as Error);
+             }
+diff --git a/src/widgets/overrides.ts b/src/widgets/overrides.ts
+index 5419d4e..35c615c 100644
+--- a/src/widgets/overrides.ts
++++ b/src/widgets/overrides.ts
+@@ -44,7 +44,7 @@ function setCss(widget: Gtk.Widget, css: string) {
+ 
+     const provider = new Gtk.CssProvider();
+     widgetProviders.set(widget, provider);
+-    provider.load_from_data(css);
++    provider.load_from_data(css as unknown as Uint8Array);
+     widget.get_style_context()
+         .add_provider(provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
+ }
+@@ -79,17 +79,17 @@ Object.defineProperty(Gtk.Widget.prototype, 'css', {
+     },
+ });
+ 
+-// @ts-expect-error
++// @ts-ignore
+ Gtk.Widget.prototype.setCss = function(css: string) {
+     setCss(this, css);
+ };
+ 
+-// @ts-expect-error
++// @ts-ignore
+ Gtk.Widget.prototype.setStyle = function(css: string) {
+     setCss(this, `* { ${css} }`);
+ };
+ 
+-// @ts-expect-error
++// @ts-ignore
+ Gtk.Widget.prototype.toggleClassName = function(cn: string, condition = true) {
+     toggleClassName(this, cn, condition);
+ };
+diff --git a/src/widgets/revealer.ts b/src/widgets/revealer.ts
+index 09a5045..250b0ee 100644
+--- a/src/widgets/revealer.ts
++++ b/src/widgets/revealer.ts
+@@ -18,7 +18,7 @@ export default class AgsRevealer extends Gtk.Revealer {
+         }, this);
+     }
+ 
+-    get transition() { return transitions[this.transitionType]; }
++    get transition() { return transitions[this.transition_type]; }
+     set transition(transition: string) {
+         if (!transition || this.transition === transition)
+             return;
+diff --git a/src/widgets/scrollable.ts b/src/widgets/scrollable.ts
+index c2c496b..e084f33 100644
+--- a/src/widgets/scrollable.ts
++++ b/src/widgets/scrollable.ts
+@@ -23,7 +23,7 @@ export default class AgsScrollable extends Gtk.ScrolledWindow {
+         });
+     }
+ 
+-    // @ts-expect-error
++    // @ts-ignore
+     get hscroll() { return this._hscroll; }
+     set hscroll(hscroll: string) {
+         if (!hscroll || this.hscroll === hscroll)
+@@ -34,13 +34,13 @@ export default class AgsScrollable extends Gtk.ScrolledWindow {
+             return;
+         }
+ 
+-        // @ts-expect-error
++        // @ts-ignore
+         this._hscroll = hscroll;
+         this.notify('hscroll');
+         this.policy();
+     }
+ 
+-    // @ts-expect-error
++    // @ts-ignore
+     get vscroll() { return this._vscroll; }
+     set vscroll(vscroll: string) {
+         if (!vscroll || this.vscroll === vscroll)
+@@ -51,7 +51,7 @@ export default class AgsScrollable extends Gtk.ScrolledWindow {
+             return;
+         }
+ 
+-        // @ts-expect-error
++        // @ts-ignore
+         this._vscroll = vscroll;
+         this.notify('vscroll');
+         this.policy();
+@@ -59,9 +59,9 @@ export default class AgsScrollable extends Gtk.ScrolledWindow {
+ 
+     policy() {
+         this.set_policy(
+-            // @ts-expect-error
++            // @ts-ignore
+             Gtk.PolicyType[this.hscroll?.toUpperCase() || 'AUTOMATIC'],
+-            // @ts-expect-error
++            // @ts-ignore
+             Gtk.PolicyType[this.vscroll?.toUpperCase() || 'AUTOMATIC'],
+         );
+     }
+diff --git a/src/widgets/slider.ts b/src/widgets/slider.ts
+index 635117a..f991eb7 100644
+--- a/src/widgets/slider.ts
++++ b/src/widgets/slider.ts
+@@ -98,13 +98,13 @@ export default class AgsSlider extends Gtk.Scale {
+         this.notify('step');
+     }
+ 
+-    // @ts-expect-error
++    // @ts-ignore
+     get dragging() { return this._dragging; }
+     set dragging(dragging: boolean) {
+         if (this.dragging === dragging)
+             return;
+ 
+-        // @ts-expect-error
++        // @ts-ignore
+         this._dragging = dragging;
+         this.notify('dragging');
+     }
+diff --git a/src/widgets/stack.ts b/src/widgets/stack.ts
+index 677735b..1693484 100644
+--- a/src/widgets/stack.ts
++++ b/src/widgets/stack.ts
+@@ -29,12 +29,12 @@ export default class AgsStack extends Gtk.Stack {
+     }
+ 
+     get items() {
+-        // @ts-expect-error
++        // @ts-ignore
+         if (!Array.isArray(this._items))
+-            // @ts-expect-error
++            // @ts-ignore
+             this._items = [];
+ 
+-        // @ts-expect-error
++        // @ts-ignore
+         return this._items;
+     }
+ 
+@@ -50,7 +50,7 @@ export default class AgsStack extends Gtk.Stack {
+             .filter(([, ch]) => this.get_children().includes(ch))
+             .forEach(([, ch]) => this.remove(ch));
+ 
+-        // @ts-expect-error
++        // @ts-ignore
+         this._items = [];
+         items.forEach(([name, widget]) => {
+             widget && this.add_named(widget, name);
+diff --git a/src/widgets/window.ts b/src/widgets/window.ts
+index 6b10421..d6dc8ed 100644
+--- a/src/widgets/window.ts
++++ b/src/widgets/window.ts
+@@ -64,7 +64,7 @@ export default class AgsWindow extends Gtk.Window {
+         this.visible = visible === true || visible === null && !popup;
+     }
+ 
+-    // @ts-expect-error
++    // @ts-ignore
+     get monitor() { return this._monitor; }
+     set monitor(monitor: number) {
+         if (monitor < 0 || this.monitor === monitor)
+@@ -73,7 +73,7 @@ export default class AgsWindow extends Gtk.Window {
+         const m = Gdk.Display.get_default()?.get_monitor(monitor);
+         if (m) {
+             LayerShell.set_monitor(this, m);
+-            // @ts-expect-error
++            // @ts-ignore
+             this._monitor = monitor;
+             this.notify('monitor');
+             return;
+@@ -129,14 +129,14 @@ export default class AgsWindow extends Gtk.Window {
+         this.notify('anchor');
+     }
+ 
+-    // @ts-expect-error
++    // @ts-ignore
+     get margin() {
+         return ['TOP', 'RIGHT', 'BOTTOM', 'LEFT'].map(edge =>
+             LayerShell.get_margin(this, LayerShell.Edge[edge]),
+         );
+     }
+ 
+-    // @ts-expect-error
++    // @ts-ignore
+     set margin(margin: number[]) {
+         let margins: [side: string, index: number][] = [];
+         switch (margin.length) {
+@@ -164,7 +164,7 @@ export default class AgsWindow extends Gtk.Window {
+         this.notify('margin');
+     }
+ 
+-    // @ts-expect-error
++    // @ts-ignore
+     get popup() { return !!this._popup; }
+ 
+     // this will be removed in gtk4
+@@ -172,16 +172,16 @@ export default class AgsWindow extends Gtk.Window {
+         if (this.popup === popup)
+             return;
+ 
+-        // @ts-expect-error
++        // @ts-ignore
+         if (this._popup)
+-            // @ts-expect-error
++            // @ts-ignore
+             this.disconnect(this._popup);
+ 
+         if (popup) {
+             this.connect('key-press-event', (_, event) => {
+                 if (event.get_keyval()[1] === Gdk.KEY_Escape) {
+-                    App.getWindow(this.name)
+-                        ? App.closeWindow(this.name)
++                    App.getWindow(this.name ?? '')
++                        ? App.closeWindow(this.name ?? '')
+                         : this.hide();
+                 }
+             });
+diff --git a/tsconfig.json b/tsconfig.json
+index d12215a..69bd6fa 100644
+--- a/tsconfig.json
++++ b/tsconfig.json
+@@ -7,7 +7,7 @@
+         ],
+         "allowJs": true,
+         "checkJs": false,
+-        "outDir": "_build/tsc-out",
++        "outDir": "dist",
+         "strict": true,
+         "moduleResolution": "node",
+         "baseUrl": ".",
+@@ -22,7 +22,8 @@
+             "gi-types"
+         ],
+         "skipLibCheck": true,
+-        "forceConsistentCasingInFileNames": true
++        "forceConsistentCasingInFileNames": true,
++        "noImplicitAny": false
+     },
+     "include": [
+         "gi-types/gi.d.ts",
+@@ -30,4 +31,4 @@
+         "src/*",
+         "src/*/*"
+     ]
+-}
++}
+\ No newline at end of file
+-- 
+2.42.0
+
