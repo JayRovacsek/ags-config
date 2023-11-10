@@ -17,14 +17,13 @@ in {
     };
 
   mkDerivation = {
-    propagatedBuildInputs = [ config.deps.ags ];
-
     installPhase = ''
-      ${config.deps.coreutils}/bin/cp -r ${config.deps.ags}/lib/node_modules/ags $out/lib/node_modules/ags-config/node_modules
+      ${config.deps.coreutils}/bin/mkdir -p $out/lib/node_modules/ags-config/js/ags
+      ${config.deps.coreutils}/bin/cp -r ${config.deps.ags}/lib/node_modules/ags/* $out/lib/node_modules/ags-config/js/ags
     '';
 
     inherit src;
   };
 
-  nodejs-package-lock-v3.packageLockFile = "${src}/package-lock.json";
+  nodejs-package-lock-v3 = { packageLockFile = "${src}/package-lock.json"; };
 }
