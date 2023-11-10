@@ -1,4 +1,4 @@
-{ dream2nix, config, specialArgs, self }:
+{ dream2nix, config, specialArgs, self, ... }:
 let src = ./.;
 in {
   imports = [
