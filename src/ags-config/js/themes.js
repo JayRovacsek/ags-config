@@ -15,16 +15,6 @@ const editScheme = (scheme, edit) => {
   return obj;
 };
 
-const gnome = {
-  red: "#f66151",
-  green: "#57e389",
-  yellow: "#f6d32d",
-  blue: "#62a0ea",
-  magenta: "#c061cb",
-  teal: "#5bc8aF",
-  orange: "#ffa348",
-};
-
 const charm = {
   red: "#e55f86",
   green: "#00D787",
@@ -43,17 +33,9 @@ const dark = {
   ...charm,
 };
 
-const light = {
-  color_scheme: "light",
-  bg_color: "#fffffa",
-  fg_color: "#141414",
-  hover_fg: "#0a0a0a",
-  ...editScheme(gnome, (c) => `darken(${c}, 8%)`),
-};
-
 const misc = {
   wm_gaps: 10,
-  radii: 9,
+  radii: 10,
   spacing: 10,
   shadow: "rgba(0, 0, 0, .6)",
   drop_shadow: true,
@@ -64,7 +46,7 @@ const misc = {
   desktop_clock: "center center",
   font: "Hack Nerd Font Regular",
   mono_font: "Hack Nerd Font Mono Regular",
-  font_size: 16,
+  font_size: 12,
 };
 
 const colors = {
@@ -91,17 +73,6 @@ const kitty_dark = {
   ...colors,
 };
 
-const kitty_light = {
-  wallpaper: WP + "kitty.jpeg",
-  name: "kitty_light",
-  icon: "󰄛",
-  ...light,
-  ...misc,
-  ...colors,
-  widget_bg: "$accent",
-  widget_opacity: 84,
-};
-
 const leaves_dark = {
   ...kitty_dark,
   wallpaper: WP + "leaves.jpg",
@@ -123,42 +94,8 @@ const leaves_dark = {
     `,
 };
 
-const leaves_light = {
-  ...leaves_dark,
-  ...light,
-  name: "leaves_light",
-  accent: "darken($green, 10%)",
-  bg_color: "transparentize(#fff, 0.1)",
-  active_gradient: "to right, $accent, darken($accent, 6%)",
-};
-
-const ivory = {
-  wallpaper: WP + "ivory.png",
-  name: "ivory",
-  icon: "󰟆",
-  ...light,
-  ...misc,
-  ...colors,
-  bg_color: "#fffff0",
-  bar_style: "separated",
-  widget_bg: "$accent",
-  widget_opacity: 64,
-  drop_shadow: false,
-  border_width: 2,
-  border_opacity: 0,
-  active_gradient: "to right, $accent, darken($accent, 6%)",
-  wallpaper_fg: "$bg_color",
-  hypr_active_border: "rgba(111111FF)",
-  additional_scss: `
-        window#quicksettings .quicksettings,
-        window#dashboard .dashboard {
-            margin-top: 0;
-        }
-    `,
-};
-
 const cutefish = {
-  ...kitty_dark,
+  ...dark,
   wallpaper: WP + "cutefish.jpeg",
   name: "cutefish",
   icon: "󰈺",
@@ -184,4 +121,4 @@ const cherry = {
   bg_color: "transparentize(#171717, 0.3)",
 };
 
-export default [kitty_dark, leaves_dark, cutefish, cherry];
+export default [leaves_dark, kitty_dark, cutefish, cherry];

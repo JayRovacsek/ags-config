@@ -2,7 +2,6 @@ import icons from "../../icons.js";
 import PowerMenu from "../../services/powermenu.js";
 import Theme from "../../services/theme/theme.js";
 import Lockscreen from "../../services/lockscreen.js";
-import Avatar from "../../misc/Avatar.js";
 import { uptime } from "../../variables.js";
 import { Battery, Widget } from "../../imports.js";
 
@@ -56,7 +55,6 @@ export default () =>
   Widget.Box({
     class_name: "header",
     children: [
-      Avatar(),
       Widget.Box({
         class_name: "system-box",
         vertical: true,
