@@ -13,7 +13,7 @@ Utils.readFileAsync(COLORS_CACHE)
 
 export default () =>
   PanelButton({
-    className: "panel-button colorpicker",
+    class_name: "panel-button colorpicker",
     content: Widget.Icon("color-select-symbolic"),
     binds: [["tooltip-text", colors, "value", (v) => `${v.length} colors`]],
     onClicked: (btn) =>
@@ -25,7 +25,7 @@ export default () =>
           const list = colors.value;
           if (!list.includes(color)) {
             list.push(color);
-            if (list > 10) list.shift();
+            if (list.length > 10) list.shift();
 
             colors.value = list;
             Utils.writeFile(JSON.stringify(list, null, 2), COLORS_CACHE).catch(
@@ -47,12 +47,12 @@ export default () =>
     onSecondaryClick: (btn) =>
       colors.value.length > 0
         ? Widget.Menu({
-            className: "colorpicker",
+            class_name: "colorpicker",
             children: colors.value.map((color) =>
               Widget.MenuItem({
                 child: Widget.Label(color),
-                style: `background-color: ${color}`,
-                onActivate: () => wlCopy(color),
+                css: `background-color: ${color}`,
+                on_activate: () => wlCopy(color),
               }),
             ),
           }).popup_at_widget(btn, Gdk.Gravity.SOUTH, Gdk.Gravity.NORTH, null)

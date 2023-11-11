@@ -4,38 +4,35 @@ import { Widget, Utils, Variable } from "../../imports.js";
 
 const Arrow = (revealer, direction, items) =>
   PanelButton({
-    className: "sub-menu",
+    class_name: "sub-menu",
     connections: [
       [
         items,
         (btn) => {
-          btn.tooltipText = `${items.value} Items`;
+          btn.tooltip_text = `${items.value} Items`;
         },
       ],
     ],
-    onClicked: (button) => {
-      const icon = button.child;
+    on_clicked: (button) => {
       revealer.revealChild = !revealer.revealChild;
-      icon._animate(icon);
+      button.child.animate();
     },
+    content: null,
     child: Widget.Icon({
       icon: icons.ui.arrow[direction],
-      setup: (i) => i._animate(i),
-      properties: [
-        ["deg", 180],
-        [
-          "animate",
-          (icon) => {
-            const step = revealer.revealChild ? 10 : -10;
-            for (let i = 0; i < 18; ++i) {
-              Utils.timeout(2 * i, () => {
-                icon._deg += step;
-                icon.setStyle(`-gtk-icon-transform: rotate(${icon._deg}deg);`);
-              });
-            }
-          },
-        ],
-      ],
+      setup: (icon) => {
+        icon._deg = 180;
+        icon.animate = () => {
+          const step = revealer.revealChild ? 10 : -10;
+          for (let i = 0; i < 18; ++i) {
+            Utils.timeout(2 * i, () => {
+              icon._deg += step;
+              icon.setCss(`-gtk-icon-transform: rotate(${icon._deg}deg);`);
+            });
+          }
+        };
+        icon.animate();
+      },
     }),
   });
 

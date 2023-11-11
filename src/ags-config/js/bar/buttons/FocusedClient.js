@@ -37,7 +37,7 @@ export const ClientIcon = () =>
 
 export default () =>
   PanelButton({
-    className: "focused-client",
+    class_name: "focused-client",
     content: Widget.Box({
       children: [ClientIcon(), ClientLabel()],
       binds: [["tooltip-text", Hyprland.active, "client", (c) => c.title]],

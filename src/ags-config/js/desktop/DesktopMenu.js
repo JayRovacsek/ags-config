@@ -4,9 +4,9 @@ import icons from "../icons.js";
 import { App, Widget } from "../imports.js";
 import Gtk from "gi://Gtk";
 
-const Item = (label, icon, onActivate) =>
+const Item = (label, icon, on_activate) =>
   Widget.MenuItem({
-    onActivate,
+    on_activate,
     child: Widget.Box({
       children: [
         Widget.Icon(icon),
@@ -21,7 +21,7 @@ const Item = (label, icon, onActivate) =>
 
 export default () =>
   Widget.Menu({
-    className: "desktop-menu",
+    class_name: "desktop-menu",
     children: [
       Widget.MenuItem({
         child: Widget.Box({
@@ -54,7 +54,7 @@ export default () =>
       Item("Applications", icons.apps.apps, () =>
         App.openWindow("applauncher"),
       ),
-      Widget({ type: Gtk.SeparatorMenuItem }),
+      new Gtk.SeparatorMenuItem(),
       Item("Settings", icons.settings, () => Theme.openSettings()),
     ],
   });

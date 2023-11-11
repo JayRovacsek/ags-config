@@ -17,7 +17,7 @@ export default () =>
     name: "powermenu",
     expand: true,
     content: Widget.Box({
-      className: "powermenu",
+      class_name: "powermenu",
       homogeneous: true,
       children: [
         SysButton("sleep", "Sleep"),

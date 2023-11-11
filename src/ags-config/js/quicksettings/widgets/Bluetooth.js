@@ -67,8 +67,7 @@ export const BluetoothDevices = () =>
                     Widget.Box({ hexpand: true }),
                     device.connecting
                       ? Spinner()
-                      : Widget({
-                          type: Gtk.Switch,
+                      : Widget.Switch({
                           active: device.connected,
                           connections: [
                             [

@@ -8,7 +8,7 @@ export const getPlayer = (name = options.preferredMpris) =>
 
 const Indicator = ({ player, direction = "right" } = {}) =>
   HoverRevealer({
-    className: `media panel-button ${player.name}`,
+    class_name: `media panel-button ${player.name}`,
     direction,
     onPrimaryClick: () => player.playPause(),
     onScrollUp: () => player.next(),
@@ -18,7 +18,7 @@ const Indicator = ({ player, direction = "right" } = {}) =>
     child: Widget.Label({
       vexpand: true,
       truncate: "end",
-      maxWidthChars: 40,
+      max_width_chars: 40,
       connections: [
         [
           player,

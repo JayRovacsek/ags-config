@@ -86,7 +86,7 @@ const BluetoothDevicesIndicator = () =>
 
 const BluetoothIndicator = () =>
   Widget.Icon({
-    className: "bluetooth",
+    class_name: "bluetooth",
     icon: icons.bluetooth.enabled,
     binds: [["visible", Bluetooth, "enabled"]],
   });
@@ -132,7 +132,7 @@ const AudioIndicator = () =>
 
 export default () =>
   PanelButton({
-    className: "quicksettings panel-button",
+    class_name: "quicksettings panel-button",
     onClicked: () => App.toggleWindow("quicksettings"),
     onScrollUp: () => {
       Audio.speaker.volume += 0.02;

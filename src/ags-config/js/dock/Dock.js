@@ -1,5 +1,4 @@
 import icons from "../icons.js";
-import Separator from "../misc/Separator.js";
 import options from "../options.js";
 import { App, Hyprland, Applications, Utils, Widget } from "../imports.js";
 import { launchApp } from "../utils.js";
@@ -11,14 +10,14 @@ const AppButton = ({ icon, ...rest }) =>
   Widget.Button({
     ...rest,
     child: Widget.Box({
-      className: "box",
+      class_name: "box",
       child: Widget.Overlay({
         child: Widget.Icon({ icon, size: options.dock.iconSize }),
         overlays: [
           Widget.Box({
-            className: "indicator",
-            valign: "end",
-            halign: "center",
+            class_name: "indicator",
+            vpack: "end",
+            hpack: "center",
           }),
         ],
       }),
@@ -44,7 +43,7 @@ const Taskbar = () =>
                 (client.class && app.match(client.class))
               ) {
                 return AppButton({
-                  icon: app.iconName,
+                  icon: app.icon_name,
                   tooltipText: app.name,
                   onPrimaryClick: () => focus(client),
                   onMiddleClick: () => launchApp(app),
@@ -58,14 +57,14 @@ const Taskbar = () =>
 
 const PinnedApps = () =>
   Widget.Box({
-    className: "pins",
+    class_name: "pins",
     homogeneous: true,
     children: options.dock.pinnedApps
       .map((term) => ({ app: Applications.query(term)?.[0], term }))
       .filter(({ app }) => app)
       .map(({ app, term = true }) =>
         AppButton({
-          icon: app.iconName,
+          icon: app.icon_name,
           onPrimaryClick: () => {
             for (const client of Hyprland.clients) {
               if (client.class.toLowerCase().includes(term))
@@ -88,12 +87,10 @@ const PinnedApps = () =>
                 button.toggleClassName("nonrunning", !running);
                 button.toggleClassName(
                   "focused",
-                  Hyprland.active.client.address ===
-                    running.address?.substring(2),
+                  Hyprland.active.client.address == running.address,
                 );
                 button.set_tooltip_text(running ? running.title : app.name);
               },
-              "notify::clients",
             ],
           ],
         }),
@@ -104,21 +101,21 @@ export default () => {
   const pinnedapps = PinnedApps();
   const taskbar = Taskbar();
   const applauncher = AppButton({
-    className: "launcher nonrunning",
+    class_name: "launcher nonrunning",
     icon: icons.apps.apps,
     tooltipText: "Applications",
     onClicked: () => App.toggleWindow("applauncher"),
   });
-  const separator = Separator({
-    valign: "center",
-    halign: "center",
-    orientation: "vertical",
+  const separator = Widget.Separator({
+    vpack: "center",
+    hpack: "center",
+    orientation: 1,
     connections: [
       [Hyprland, (box) => (box.visible = taskbar.children.length > 0)],
     ],
   });
   return Widget.Box({
-    className: "dock",
+    class_name: "dock",
     children: [applauncher, pinnedapps, separator, taskbar],
   });
 };

@@ -4,12 +4,12 @@ import { Widget } from "../imports.js";
 export default (props) =>
   Widget.Box({
     ...props,
-    className: "avatar",
+    class_name: "avatar",
     connections: [
       [
         Theme,
         (box) => {
-          box.setStyle(`
+          box.setCss(`
             background-image: url('${Theme.getSetting("avatar")}');
             background-size: cover;
         `);
@@ -17,7 +17,7 @@ export default (props) =>
       ],
     ],
     // child: Widget.Box({
-    //     className: 'shader',
+    //     class_name: 'shader',
     //     vexpand: true,
     //     hexpand: true,
     // }),

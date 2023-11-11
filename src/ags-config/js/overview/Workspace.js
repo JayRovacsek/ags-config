@@ -14,10 +14,10 @@ const substitute = (str) =>
 
 const Client = ({ address, size: [w, h], class: c, title }) =>
   Widget.Button({
-    className: "client",
+    class_name: "client",
     tooltipText: title,
     child: Widget.Icon({
-      style: `
+      css: `
             min-width: ${w * SCALE}px;
             min-height: ${h * SCALE}px;
         `,
@@ -50,9 +50,9 @@ export default (index) => {
   const fixed = Gtk.Fixed.new();
 
   const widget = Widget.Box({
-    className: "workspace",
-    valign: "center",
-    style: `
+    class_name: "workspace",
+    vpack: "center",
+    css: `
             min-width: ${1920 * SCALE}px;
             min-height: ${1080 * SCALE}px;
         `,

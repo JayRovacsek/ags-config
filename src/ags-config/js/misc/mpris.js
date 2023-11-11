@@ -7,10 +7,10 @@ const MEDIA_CACHE_PATH = Utils.CACHE_DIR + "/media";
 export const CoverArt = (player, props) =>
   Widget.Box({
     ...props,
-    className: "cover",
+    class_name: "cover",
     binds: [
       [
-        "style",
+        "css",
         player,
         "cover-path",
         (path) => `background-image: url("${path}")`,
@@ -21,7 +21,7 @@ export const CoverArt = (player, props) =>
 export const BlurredCoverArt = (player, props) =>
   Widget.Box({
     ...props,
-    className: "blurred-cover",
+    class_name: "blurred-cover",
     connections: [
       [
         player,
@@ -33,13 +33,13 @@ export const BlurredCoverArt = (player, props) =>
           const blurred = blurredPath + url.substring(MEDIA_CACHE_PATH.length);
 
           if (GLib.file_test(blurred, GLib.FileTest.EXISTS)) {
-            box.setStyle(`background-image: url("${blurred}")`);
+            box.setCss(`background-image: url("${blurred}")`);
             return;
           }
 
           Utils.ensureDirectory(blurredPath);
           Utils.execAsync(["convert", url, "-blur", "0x22", blurred])
-            .then(() => box.setStyle(`background-image: url("${blurred}")`))
+            .then(() => box.setCss(`background-image: url("${blurred}")`))
             .catch(() => {});
         },
         "notify::cover-path",
@@ -50,21 +50,21 @@ export const BlurredCoverArt = (player, props) =>
 export const TitleLabel = (player, props) =>
   Widget.Label({
     ...props,
-    className: "title",
+    class_name: "title",
     binds: [["label", player, "track-title"]],
   });
 
 export const ArtistLabel = (player, props) =>
   Widget.Label({
     ...props,
-    className: "artist",
+    class_name: "artist",
     binds: [["label", player, "track-artists", (a) => a.join(", ") || ""]],
   });
 
 export const PlayerIcon = (player, { symbolic = true, ...props } = {}) =>
   Widget.Icon({
     ...props,
-    className: "player-icon",
+    class_name: "player-icon",
     tooltipText: player.identity || "",
     connections: [
       [
@@ -82,7 +82,7 @@ export const PlayerIcon = (player, { symbolic = true, ...props } = {}) =>
 export const PositionSlider = (player, props) =>
   Widget.Slider({
     ...props,
-    className: "position-slider",
+    class_name: "position-slider",
     drawValue: false,
     onChange: ({ value }) => {
       player.position = player.length * value;
@@ -174,14 +174,14 @@ export const ShuffleButton = (player) =>
       [
         "true",
         Widget.Label({
-          className: "shuffle enabled",
+          class_name: "shuffle enabled",
           label: icons.mpris.shuffle.enabled,
         }),
       ],
       [
         "false",
         Widget.Label({
-          className: "shuffle disabled",
+          class_name: "shuffle disabled",
           label: icons.mpris.shuffle.disabled,
         }),
       ],
@@ -199,21 +199,21 @@ export const LoopButton = (player) =>
       [
         "None",
         Widget.Label({
-          className: "loop none",
+          class_name: "loop none",
           label: icons.mpris.loop.none,
         }),
       ],
       [
         "Track",
         Widget.Label({
-          className: "loop track",
+          class_name: "loop track",
           label: icons.mpris.loop.track,
         }),
       ],
       [
         "Playlist",
         Widget.Label({
-          className: "loop playlist",
+          class_name: "loop playlist",
           label: icons.mpris.loop.playlist,
         }),
       ],
@@ -231,21 +231,21 @@ export const PlayPauseButton = (player) =>
       [
         "Playing",
         Widget.Label({
-          className: "playing",
+          class_name: "playing",
           label: icons.mpris.playing,
         }),
       ],
       [
         "Paused",
         Widget.Label({
-          className: "paused",
+          class_name: "paused",
           label: icons.mpris.paused,
         }),
       ],
       [
         "Stopped",
         Widget.Label({
-          className: "stopped",
+          class_name: "stopped",
           label: icons.mpris.stopped,
         }),
       ],
@@ -263,7 +263,7 @@ export const PreviousButton = (player) =>
       [
         "true",
         Widget.Label({
-          className: "previous",
+          class_name: "previous",
           label: icons.mpris.prev,
         }),
       ],
@@ -281,7 +281,7 @@ export const NextButton = (player) =>
       [
         "true",
         Widget.Label({
-          className: "next",
+          class_name: "next",
           label: icons.mpris.next,
         }),
       ],

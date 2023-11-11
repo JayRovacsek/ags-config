@@ -1,8 +1,7 @@
 import icons from "../../icons.js";
-import Separator from "../../misc/Separator.js";
 import Asusctl from "../../services/asusctl.js";
 import { ArrowToggleButton, Menu } from "../ToggleButton.js";
-import { Widget } from "../../imports.js";
+import { Utils, Widget } from "../../imports.js";
 
 export const ProfileToggle = () =>
   ArrowToggleButton({
@@ -32,7 +31,7 @@ export const ProfileSelector = () =>
       children: Asusctl.profiles
         .map((prof) =>
           Widget.Button({
-            onClicked: () => Asusctl.setProfile(prof),
+            on_clicked: () => Asusctl.setProfile(prof),
             child: Widget.Box({
               children: [
                 Widget.Icon(icons.asusctl.profile[prof]),
@@ -42,9 +41,9 @@ export const ProfileSelector = () =>
           }),
         )
         .concat([
-          Separator({ orientation: "horizontal" }),
+          Widget.Separator(),
           Widget.Button({
-            onClicked: "rog-control-center",
+            on_clicked: () => Utils.execAsync("rog-control-center"),
             child: Widget.Box({
               children: [
                 Widget.Icon(icons.settings),

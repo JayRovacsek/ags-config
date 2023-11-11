@@ -3,13 +3,12 @@ import Theme from "../services/theme/theme.js";
 import { Widget } from "../imports.js";
 
 const Corner = (place) =>
-  Widget({
-    type: Gtk.DrawingArea,
-    className: "corner",
+  Widget.DrawingArea({
+    class_name: "corner",
     hexpand: true,
     vexpand: true,
-    halign: place.includes("left") ? "start" : "end",
-    valign: place.includes("top") ? "start" : "end",
+    hpack: place.includes("left") ? "start" : "end",
+    vpack: place.includes("top") ? "start" : "end",
     connections: [
       [
         Theme,
@@ -62,7 +61,7 @@ export default (monitor) =>
     Widget.Window({
       name: `corner${monitor}${place}`,
       monitor,
-      className: "corner",
+      class_name: "corner",
       anchor: [
         place.includes("top") ? "top" : "bottom",
         place.includes("right") ? "right" : "left",
@@ -72,13 +71,13 @@ export default (monitor) =>
           place.includes("right") &&
             Widget.Label({
               label: "for some reason single chidren sometimes dont render",
-              style: "color: transparent;",
+              css: "color: transparent;",
             }),
           Corner(place),
           place.includes("left") &&
             Widget.Label({
               label: "for some reason single chidren sometimes dont render",
-              style: "color: transparent;",
+              css: "color: transparent;",
             }),
         ],
       }),
