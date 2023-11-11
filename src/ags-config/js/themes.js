@@ -62,8 +62,8 @@ const misc = {
   bar_style: "normal",
   layout: "topbar",
   desktop_clock: "center center",
-  font: "Ubuntu Nerd Font",
-  mono_font: "Mononoki Nerd Font",
+  font: "Hack Nerd Font Regular",
+  mono_font: "Hack Nerd Font Mono Regular",
   font_size: 16,
 };
 
