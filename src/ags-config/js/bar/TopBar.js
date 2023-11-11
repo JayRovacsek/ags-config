@@ -1,6 +1,3 @@
-import OverviewButton from "./buttons/OverviewButton.js";
-import Workspaces from "./buttons/Workspaces.js";
-import FocusedClient from "./buttons/FocusedClient.js";
 import MediaIndicator from "./buttons/MediaIndicator.js";
 import DateButton from "./buttons/DateButton.js";
 import NotificationIndicator from "./buttons/NotificationIndicator.js";
@@ -14,6 +11,7 @@ import SubMenu from "./buttons/SubMenu.js";
 import { SystemTray, Widget, Variable } from "../imports.js";
 import { Notifications, Mpris, Battery } from "../imports.js";
 import Recorder from "../services/screenrecord.js";
+import { SysProgress } from "../dashboard/DateColumn.js";
 
 const submenuItems = Variable(1);
 SystemTray.connect("changed", () => {
@@ -40,11 +38,6 @@ const Start = () =>
   Widget.Box({
     class_name: "start",
     children: [
-      OverviewButton(),
-      SeparatorDot(),
-      Workspaces(),
-      SeparatorDot(),
-      FocusedClient(),
       Widget.Box({ hexpand: true }),
       NotificationIndicator(),
       SeparatorDot(Notifications, (n) => n.notifications.length > 0 || n.dnd),
@@ -71,12 +64,14 @@ const End = () =>
       }),
 
       SeparatorDot(),
+      SysProgress("cpu", "Cpu", "%"),
+      SysProgress("ram", "Ram", "%"),
       ScreenRecord(),
       SeparatorDot(Recorder, (r) => r.recording),
       SystemIndicators(),
       SeparatorDot(Battery, (b) => b.available),
-      BatteryBar(),
-      SeparatorDot(),
+      Battery.available ? BatteryBar() : null,
+      Battery.available ? SeparatorDot() : null,
       PowerMenu(),
     ],
   });

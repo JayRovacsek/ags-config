@@ -31,6 +31,7 @@
     &:indeterminate {
       color: transparentize($fg_color, 0.9);
     }
+
     font-size: 1.1em;
     padding: 0.2em;
   }
@@ -83,9 +84,11 @@ window#dashboard .dashboard {
 
     .placeholder {
       color: $wallpaper_fg;
+
       image {
         font-size: 7em;
       }
+
       label {
         font-size: 1.2em;
       }
@@ -128,9 +131,11 @@ window#dashboard .dashboard {
     @include widget;
     margin-top: $spacing;
     margin-right: $spacing;
+
     &:last-child {
       margin-right: 0;
     }
+
     padding: $spacing;
 
     .circular-progress {

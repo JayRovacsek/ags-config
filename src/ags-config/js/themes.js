@@ -80,7 +80,7 @@ const tomorrowNightBlue = {
   screen_corners: true,
   bar_style: "normal",
   layout: "topbar",
-  desktop_clock: "",
+  desktop_clock: "end end",
   font: "Hack Nerd Font Regular",
   mono_font: "Hack Nerd Font Mono Regular",
   font_size: 12,

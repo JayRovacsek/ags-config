@@ -4,10 +4,10 @@ import * as vars from "../variables.js";
 import { Widget } from "../imports.js";
 import Theme from "../services/theme/theme.js";
 
-const SysProgress = (type, title, unit) =>
+export const SysProgress = (type, title, unit) =>
   Widget.Box({
     class_name: `circular-progress-box ${type}`,
-    hexpand: true,
+    hexpand: false,
     binds: [
       [
         "tooltipText",
@@ -17,7 +17,6 @@ const SysProgress = (type, title, unit) =>
       ],
     ],
     child: Widget.CircularProgress({
-      hexpand: true,
       class_name: `circular-progress ${type}`,
       child: Widget.Icon(icons.system[type]),
       start_at: 0.75,
@@ -38,10 +37,6 @@ export default () =>
     vertical: true,
     class_name: "datemenu",
     children: [
-      Clock({ format: "%H:%M" }),
-      Widget.Label({
-        binds: [["label", vars.uptime, "value", (t) => `uptime: ${t}`]],
-      }),
       Widget.Box({
         class_name: "calendar",
         children: [
@@ -49,14 +44,6 @@ export default () =>
             hexpand: true,
             hpack: "center",
           }),
-        ],
-      }),
-      Widget.Box({
-        class_name: "system-info",
-        children: [
-          SysProgress("cpu", "Cpu", "%"),
-          SysProgress("ram", "Ram", "%"),
-          SysProgress("temp", "Temperature", "°"),
         ],
       }),
     ],

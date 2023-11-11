@@ -94,7 +94,7 @@ export default {
     },
   },
   system: {
-    cpu: "org.gnome.SystemMonitor-symbolic",
+    cpu: "starred-symbolic",
     ram: "drive-harddisk-solidstate-symbolic",
     temp: "temperature-symbolic",
   },

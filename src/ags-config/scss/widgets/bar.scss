@@ -31,11 +31,13 @@ $float: $spacing * 0.7;
       image {
         color: $accent_fg;
       }
+
       background-image: $active_gradient;
       background-color: $accent;
     }
   } @else {
     @include accs_button($flat, $reactive);
+
     > * {
       margin: $float;
     }
@@ -97,9 +99,11 @@ $float: $spacing * 0.7;
 
   .quicksettings > box > * {
     margin: 0 $spacing/2;
+
     &:last-child {
       margin-right: 0;
     }
+
     &:first-child {
       margin-left: 0;
     }
@@ -109,9 +113,11 @@ $float: $spacing * 0.7;
     label {
       color: transparentize($accent, 0.2);
     }
+
     &:hover label {
       color: $accent;
     }
+
     &:active label,
     &.active label {
       color: $accent_fg;
@@ -123,9 +129,11 @@ $float: $spacing * 0.7;
     image {
       color: transparentize($red, 0.3);
     }
+
     &:hover image {
       color: transparentize($red, 0.15);
     }
+
     &:active image {
       color: $red;
     }
@@ -141,6 +149,7 @@ $float: $spacing * 0.7;
       &.low {
         color: $red;
       }
+
       &.charged,
       &.charging {
         color: $green;
@@ -152,9 +161,11 @@ $float: $spacing * 0.7;
     &.spotify image {
       color: $green;
     }
+
     &.firefox image {
       color: $orange;
     }
+
     &.mpv image {
       color: $magenta;
     }
@@ -170,6 +181,7 @@ $float: $spacing * 0.7;
     image {
       margin-right: $spacing/2;
     }
+
     .font-icon {
       font-size: 1.3em;
     }
@@ -203,12 +215,15 @@ $float: $spacing * 0.7;
     .medium {
       @include color($yellow);
     }
+
     .low {
       @include color($red);
     }
+
     .charging {
       @include color($green);
     }
+
     &:active {
       @include color($accent_fg);
     }
@@ -224,6 +239,7 @@ $float: $spacing * 0.7;
 
       @if $bar_style == "separated" {
         border-radius: max($radii - $border_width, 0);
+
         &:hover {
           background-color: $hover;
         }
@@ -249,6 +265,7 @@ $float: $spacing * 0.7;
       &:last-child .indicator {
         margin-right: $spacing;
       }
+
       &:first-child .indicator {
         margin-left: $spacing;
       }
