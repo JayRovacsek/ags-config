@@ -135,11 +135,11 @@ export default () =>
     class_name: "quicksettings panel-button",
     onClicked: () => App.toggleWindow("quicksettings"),
     onScrollUp: () => {
-      Audio.speaker.volume += 0.02;
+      Audio.speaker.volume += 0.05;
       Indicator.speaker();
     },
     onScrollDown: () => {
-      Audio.speaker.volume -= 0.02;
+      Audio.speaker.volume -= 0.05;
       Indicator.speaker();
     },
     connections: [
@@ -152,8 +152,6 @@ export default () =>
     ],
     child: Widget.Box({
       children: [
-        Asusctl?.available && ProfileIndicator(),
-        Asusctl?.available && ModeIndicator(),
         DNDIndicator(),
         BluetoothDevicesIndicator(),
         BluetoothIndicator(),

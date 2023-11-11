@@ -52,9 +52,9 @@ const light = {
 };
 
 const misc = {
-  wm_gaps: 22,
+  wm_gaps: 10,
   radii: 9,
-  spacing: 9,
+  spacing: 10,
   shadow: "rgba(0, 0, 0, .6)",
   drop_shadow: true,
   transition: 200,
@@ -74,10 +74,10 @@ const colors = {
   accent: "$blue",
   accent_fg: "#141414",
   widget_bg: "$fg_color",
-  widget_opacity: 94,
+  widget_opacity: 90,
   active_gradient: "to right, $accent, lighten($accent, 6%)",
   border_color: "$fg_color",
-  border_opacity: 97,
+  border_opacity: 90,
   border_width: 1,
 };
 
@@ -184,12 +184,4 @@ const cherry = {
   bg_color: "transparentize(#171717, 0.3)",
 };
 
-export default [
-  kitty_dark,
-  kitty_light,
-  leaves_dark,
-  leaves_light,
-  ivory,
-  cutefish,
-  cherry,
-];
+export default [kitty_dark, leaves_dark, cutefish, cherry];

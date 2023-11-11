@@ -3,8 +3,6 @@ import ScreenCorners from "./screencorner/ScreenCorners.js";
 import Overview from "./overview/Overview.js";
 import Dashboard from "./dashboard/Dashboard.js";
 import OSD from "./osd/OSD.js";
-import FloatingDock from "./dock/FloatingDock.js";
-import Applauncher from "./applauncher/Applauncher.js";
 import PowerMenu from "./powermenu/PowerMenu.js";
 import Verification from "./powermenu/Verification.js";
 import Desktop from "./desktop/Desktop.js";
@@ -24,11 +22,9 @@ const windows = () => [
   forMonitors(TopBar),
   forMonitors(ScreenCorners),
   forMonitors(OSD),
-  forMonitors(FloatingDock),
   forMonitors(Desktop),
   forMonitors(Notifications),
   forMonitors(Lockscreen),
-  Applauncher(),
   Overview(),
   Dashboard(),
   QuickSettings(),
